@@ -24,7 +24,6 @@ export const STRINGS = {
     commitments: 'Komitmen bank lain sebulan',
     exitFee: 'Fi penamatan awal (pilihan)',
     knownInstallment: 'Ansuran sebenar saya (pilihan)',
-    installmentEmpty: 'Dah ada ASBF? Taip ansuran bulanan anda. Kosongkan untuk kira daripada kadar.',
     installmentInvalid:
       'Ansuran ini tidak munasabah untuk jumlah dan tempoh ini, jadi kadar di atas digunakan ({calc}/bulan). Semak jumlah pembiayaan dan tempoh.',
     rateImplied: 'Dikira daripada ansuran anda: {rate}% setahun. Kosongkan ansuran untuk ubah kadar.',
@@ -163,7 +162,6 @@ export const STRINGS = {
     commitments: 'Other bank commitments per month',
     exitFee: 'Early exit fee (optional)',
     knownInstallment: 'My actual installment (optional)',
-    installmentEmpty: 'Already have ASBF? Type your monthly installment. Leave empty to calculate it from the rate.',
     installmentInvalid:
       'This installment does not fit this amount and tenure, so the rate above is used ({calc}/month). Check the financing amount and tenure.',
     rateImplied: 'Worked out from your installment: {rate}% a year. Clear the installment to change the rate.',

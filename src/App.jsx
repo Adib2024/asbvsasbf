@@ -276,6 +276,7 @@ export default function App() {
             {implied !== null && <p className="hint">{t('rateImplied', { rate: implied.toFixed(2) })}</p>}
           </SliderField>
 
+          <div className="field-pair">
           <MoneyField
             id="takaful"
             label={t('takaful')}
@@ -294,12 +295,11 @@ export default function App() {
             hint={
               hasKnown && implied === null
                 ? t('installmentInvalid', { calc: rm2(result.installment) })
-                : !hasKnown
-                  ? t('installmentEmpty')
-                  : null
+                : null
             }
             warn={hasKnown && implied === null}
           />
+          </div>
 
           <SliderField
             id="dividend"
@@ -318,6 +318,7 @@ export default function App() {
             />
           </SliderField>
 
+          <div className="field-pair">
           <MoneyField
             id="balance"
             label={t('balance')}
@@ -334,7 +335,9 @@ export default function App() {
             hint={!debt ? t('enterSalary') : null}
             warn={!debt}
           />
+          </div>
 
+          <div className="field-pair">
           <MoneyField
             id="commitments"
             label={t('commitments')}
@@ -350,21 +353,11 @@ export default function App() {
             onChange={(n) => set('exitFee', n)}
             tip={tip(t('exitFee'), 'tipExitFee')}
           />
-
-          <SliderField
-            id="year"
-            label={t('year')}
-            value={v.year}
-            min={1}
-            max={v.tenure}
-            step={1}
-            rangeText={t('range', { min: 1, max: v.tenure })}
-            onChange={(n) => set('year', n)}
-          />
+          </div>
         </section>
 
         <div className="results">
-          <section className="cards" aria-label={t('groupCompare')}>
+          <section className="cards area-cards" aria-label={t('groupCompare')}>
             <div className="card stat">
               <h3>{t('cardInstallment')}</h3>
               <p className="stat-val">
@@ -403,7 +396,7 @@ export default function App() {
             </div>
           </section>
 
-          <section className="card" aria-labelledby="chart-h">
+          <section className="card area-chart" aria-labelledby="chart-h">
             <div className="card-head">
               <h2 id="chart-h">{t('chartTitle')}</h2>
               <p className="muted">{t('chartHint')}</p>
@@ -416,14 +409,27 @@ export default function App() {
               labels={chartLabels}
               ariaLabel={t('chartAria', { y: v.tenure })}
             />
+            <div className="year-pick">
+              <SliderField
+                id="year"
+                label={t('year')}
+                value={v.year}
+                min={1}
+                max={v.tenure}
+                step={1}
+                rangeText={t('range', { min: 1, max: v.tenure })}
+                onChange={(n) => set('year', n)}
+              />
+            </div>
           </section>
 
-          <div className="pair">
-            <section className="card" aria-labelledby="close-h">
+            <section className="card area-close" aria-labelledby="close-h">
               <div className="card-head">
                 <h2 id="close-h">{t('closeTitle', { y: v.year })}</h2>
                 <span className={`pill pill-${tone}`}>{pill}</span>
               </div>
+              <div className="close-grid">
+                <div>
               <h3 className="group">{t('groupAsbf')}</h3>
               <p className="assume">{t('asbfAssume', assume)}</p>
               <dl>
@@ -451,6 +457,8 @@ export default function App() {
                   <Anim value={row.asbf} format={rm} />
                 </Row>
               </dl>
+                </div>
+                <div>
               <h3 className="group">{t('groupCash')}</h3>
               <p className="assume">{t('cashAssume', assume)}</p>
               <dl>
@@ -470,6 +478,8 @@ export default function App() {
                   <Anim value={row.cashTotal} format={rm} />
                 </Row>
               </dl>
+                </div>
+                <div>
               <h3 className="group">{t('groupCompare')}</h3>
               <dl>
                 <Row label={t('diff')} strong tone={tone}>
@@ -483,9 +493,11 @@ export default function App() {
                 </Row>
               </dl>
               <p className="muted small">{t('gainNote')}</p>
+                </div>
+              </div>
             </section>
 
-            <section className="card" aria-labelledby="dsr-h">
+            <section className="card area-dsr" aria-labelledby="dsr-h">
               <div className="card-head">
                 <h2 id="dsr-h">
                   {t('dsrTitle')}
@@ -536,9 +548,8 @@ export default function App() {
                 </>
               )}
             </section>
-          </div>
 
-          <section className="card" aria-labelledby="table-h">
+          <section className="card area-table" aria-labelledby="table-h">
             <div className="card-head">
               <h2 id="table-h">{t('tableTitle')}</h2>
               <div className="chips">
