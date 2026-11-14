@@ -693,8 +693,9 @@ dl {
 
 /* ---------- table ---------- */
 .table-wrap {
-  max-height: 440px;
   overflow: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
   border: 1px solid var(--border);
   border-radius: 12px;
   -webkit-overflow-scrolling: touch;
@@ -705,7 +706,7 @@ table {
   border-collapse: separate;
   border-spacing: 0;
   width: 100%;
-  min-width: 720px;
+  min-width: 640px;
   font-size: 0.875rem;
 }
 
@@ -715,6 +716,33 @@ td {
   text-align: right;
   white-space: nowrap;
   border-bottom: 1px solid var(--border);
+}
+
+.table-wrap.is-scroll {
+  max-height: 460px;
+}
+
+table.is-compact {
+  min-width: 0;
+  font-size: 0.8125rem;
+}
+
+table.is-compact tbody th button {
+  min-width: 40px;
+}
+
+table.is-compact th,
+table.is-compact td {
+  padding-left: 6px;
+  padding-right: 6px;
+}
+
+table.is-compact thead th {
+  white-space: normal;
+}
+
+.table-note {
+  margin-bottom: 10px;
 }
 
 thead th {
@@ -758,6 +786,30 @@ tbody tr {
 
 tbody tr:last-child > * {
   border-bottom: 0;
+}
+
+@media (hover: hover) {
+  tbody tr:not(.is-selected):hover > * {
+    background: var(--surface-2);
+  }
+  .chip:hover,
+  .btn-quiet:hover,
+  .lang button:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+  }
+  .chip[aria-pressed='true']:hover {
+    color: var(--on-primary);
+  }
+  .stat,
+  .chip,
+  tbody tr > * {
+    transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+  }
+  .stat:hover {
+    border-color: var(--primary);
+    transform: translateY(-2px);
+  }
 }
 
 tbody tr.is-selected > * {
@@ -887,6 +939,8 @@ tbody tr.is-selected th {
     top: 16px;
     max-height: calc(100vh - 32px);
     overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
   }
   .cards {
     grid-template-columns: repeat(4, minmax(0, 1fr));

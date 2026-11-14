@@ -56,6 +56,8 @@ function Row({ label, tip, children, strong, tone }) {
   );
 }
 
+// Table cells drop the RM prefix (stated once above the table) so columns stay narrow.
+const bare = (text) => text.replace('RM', '');
 const toneOf = (n) => (Math.abs(n) < 0.5 ? 'flat' : n > 0 ? 'good' : 'bad');
 
 export default function App() {
@@ -64,6 +66,9 @@ export default function App() {
   const [inputs, setInputs] = useState(initial.current.inputs);
   const [lang, setLang] = useState(initial.current.lang);
   const [toast, setToast] = useState(null);
+  // Phones start with the four key columns so the table fits without sideways scrolling.
+  const [allYears, setAllYears] = useState(false);
+  const [fullTable, setFullTable] = useState(() => matchMedia('(min-width: 860px)').matches);
   const dark = useDarkMode();
   const t = useMemo(() => makeT(lang), [lang]);
 
@@ -113,6 +118,10 @@ export default function App() {
   );
   const row = result.rows[v.year - 1];
   const debt = dsr({ salary: v.salary, commitments: v.commitments, installment: result.installment });
+  // Short view: year 1, every 5th year, the last year and whichever year is selected.
+  const tableRows = allYears
+    ? result.rows
+    : result.rows.filter((r) => r.year === 1 || r.year % 5 === 0 || r.year === v.tenure || r.year === v.year);
   const tone = toneOf(row.diff);
   const assume = { inst: rm2(result.installment), y: v.year, m: v.year * 12 };
   const pill = tone === 'good' ? t('asbfWins') : tone === 'bad' ? t('cashWins') : t('even');
@@ -159,7 +168,7 @@ export default function App() {
     const bottom = tr.offsetTop + tr.offsetHeight;
     if (top < wrap.scrollTop) wrap.scrollTop = top;
     else if (bottom > wrap.scrollTop + wrap.clientHeight) wrap.scrollTop = bottom - wrap.clientHeight;
-  }, [v.year, v.tenure]);
+  }, [v.year, v.tenure, fullTable, allYears]);
 
   return (
     <>
@@ -532,24 +541,34 @@ export default function App() {
           <section className="card" aria-labelledby="table-h">
             <div className="card-head">
               <h2 id="table-h">{t('tableTitle')}</h2>
-              <p className="muted">{t('tableHint')}</p>
+              <div className="chips">
+                <button type="button" className="chip" aria-pressed={allYears} onClick={() => setAllYears((a) => !a)}>
+                  {t('allYears')}
+                </button>
+                <button type="button" className="chip" aria-pressed={fullTable} onClick={() => setFullTable((f) => !f)}>
+                  {t('showAll')}
+                </button>
+              </div>
             </div>
-            <div className="table-wrap" ref={tableWrap} tabIndex={0} role="region" aria-labelledby="table-h">
-              <table>
+            <p className="muted table-note">
+              {t('tableUnit')} {allYears ? '' : t('tableEvery5')} {t('tableHint')}
+            </p>
+            <div className={`table-wrap${allYears ? ' is-scroll' : ''}`} ref={tableWrap} tabIndex={0} role="region" aria-labelledby="table-h">
+              <table className={fullTable ? undefined : 'is-compact'}>
                 <thead>
                   <tr>
                     <th scope="col">{t('colYear')}</th>
-                    <th scope="col">{t('colUnits')}</th>
-                    <th scope="col">{t('colLoan')}</th>
-                    <th scope="col">{t('colSurrender')}</th>
+                    {fullTable && <th scope="col">{t('colUnits')}</th>}
+                    {fullTable && <th scope="col">{t('colLoan')}</th>}
+                    {fullTable && <th scope="col">{t('colSurrender')}</th>}
                     <th scope="col">{t('colAsbf')}</th>
                     <th scope="col">{t('colCash')}</th>
                     <th scope="col">{t('colDiff')}</th>
-                    <th scope="col">{t('colPaid')}</th>
+                    {fullTable && <th scope="col">{t('colPaid')}</th>}
                   </tr>
                 </thead>
                 <tbody>
-                  {result.rows.map((r) => (
+                  {tableRows.map((r) => (
                     <tr
                       key={r.year}
                       className={r.year === v.year ? 'is-selected' : undefined}
@@ -560,13 +579,13 @@ export default function App() {
                           {r.year}
                         </button>
                       </th>
-                      <td>{rm(r.units)}</td>
-                      <td>{rm(r.loan)}</td>
-                      <td>{rm(r.surrender)}</td>
-                      <td>{rm(r.asbf)}</td>
-                      <td>{rm(r.cashTotal)}</td>
-                      <td className={`tone-${toneOf(r.diff)}`}>{rmSigned(r.diff)}</td>
-                      <td>{rm(r.totalPaid)}</td>
+                      {fullTable && <td>{bare(rm(r.units))}</td>}
+                      {fullTable && <td>{bare(rm(r.loan))}</td>}
+                      {fullTable && <td>{bare(rm(r.surrender))}</td>}
+                      <td>{bare(rm(r.asbf))}</td>
+                      <td>{bare(rm(r.cashTotal))}</td>
+                      <td className={`tone-${toneOf(r.diff)}`}>{bare(rmSigned(r.diff))}</td>
+                      {fullTable && <td>{bare(rm(r.totalPaid))}</td>}
                     </tr>
                   ))}
                 </tbody>
