@@ -97,6 +97,15 @@ export const STRINGS = {
     dsrNote: 'Anggaran pinjaman rumah pada 4% selama 35 tahun.',
     dsrOver: 'Komitmen anda melebihi had 60%. Bank berkemungkinan menolak pembiayaan baharu.',
 
+    oprTitle: 'Jika OPR berubah',
+    oprNow: 'Sekarang',
+    colRate: 'Kadar',
+    colInst: 'Ansuran',
+    colDiffY: 'Beza thn {y}',
+    oprNote:
+      'Andaian: kadar baharu terpakai dari awal hingga habis tempoh, dividen ASB kekal {div}%, dan simpanan tunai ikut ansuran baharu. Sesetengah bank kekalkan ansuran dan panjangkan tempoh.',
+    tipOpr:
+      'Kadar ASBF anda = KAS + margin bank, dan KAS mengikut OPR Bank Negara. Jika OPR naik 0.25%, kadar anda naik 0.25% dan ansuran bertambah; jika OPR turun, ansuran berkurang. Dividen ASB tidak terikat kepada OPR.',
     tableTitle: 'Jadual tahun demi tahun',
     tableHint: 'Ketik baris untuk lihat butiran tahun itu.',
     tableUnit: 'Semua nilai dalam RM.',
@@ -235,6 +244,15 @@ export const STRINGS = {
     dsrNote: 'Home loan estimated at 4% over 35 years.',
     dsrOver: 'Your commitments exceed the 60% limit. A bank is likely to decline new financing.',
 
+    oprTitle: 'If OPR changes',
+    oprNow: 'Now',
+    colRate: 'Rate',
+    colInst: 'Installment',
+    colDiffY: 'Diff. yr {y}',
+    oprNote:
+      'Assumes the new rate applies from the start to the end of the tenure, the ASB dividend stays at {div}%, and cash savings follow the new installment. Some banks keep the installment and extend the tenure instead.',
+    tipOpr:
+      'Your ASBF rate = KAS + the bank’s margin, and KAS follows Bank Negara’s OPR. If OPR rises 0.25%, your rate rises 0.25% and the installment goes up; if OPR falls, it goes down. ASB dividends are not tied to OPR.',
     tableTitle: 'Year-by-year table',
     tableHint: 'Tap a row to see that year in detail.',
     tableUnit: 'All values in RM.',

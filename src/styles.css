@@ -223,12 +223,13 @@ table,
 
 /* results are placed by named areas so the order can change per breakpoint */
 .results {
-  grid-template-areas: 'cards' 'chart' 'close' 'dsr' 'table';
+  grid-template-areas: 'cards' 'chart' 'close' 'dsr' 'opr' 'table';
 }
 .area-cards { grid-area: cards; }
 .area-chart { grid-area: chart; }
 .area-close { grid-area: close; }
 .area-dsr { grid-area: dsr; }
+.area-opr { grid-area: opr; }
 .area-table { grid-area: table; }
 
 .verdict {
@@ -763,6 +764,32 @@ table.is-compact thead th {
   margin-bottom: 10px;
 }
 
+table.mini {
+  min-width: 0;
+}
+
+table.mini tbody th {
+  padding: 10px 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+table.mini tbody tr {
+  cursor: default;
+}
+
+table.mini th,
+table.mini td {
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+.delta {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
 thead th {
   position: sticky;
   top: 0;
@@ -916,6 +943,21 @@ tbody tr.is-selected th {
   }
 }
 
+@media (max-width: 619px) {
+  table.mini {
+    font-size: 0.8125rem;
+  }
+  table.mini th,
+  table.mini td,
+  table.mini tbody th {
+    padding-left: 5px;
+    padding-right: 5px;
+  }
+  .delta {
+    font-size: 0.6875rem;
+  }
+}
+
 /* ---------- small phones ---------- */
 @media (max-width: 400px) {
   .brand p {
@@ -936,7 +978,7 @@ tbody tr.is-selected th {
 @media (min-width: 620px) and (max-width: 859px) {
   .results {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    grid-template-areas: 'cards cards' 'chart chart' 'close dsr' 'table table';
+    grid-template-areas: 'cards cards' 'chart chart' 'close dsr' 'opr opr' 'table table';
     align-items: start;
   }
 }
@@ -1005,7 +1047,7 @@ tbody tr.is-selected th {
   .results {
     grid-area: results;
     grid-template-columns: minmax(0, 2fr) minmax(300px, 1fr);
-    grid-template-areas: 'cards cards' 'chart dsr' 'close close' 'table table';
+    grid-template-areas: 'cards cards' 'chart dsr' 'close close' 'opr opr' 'table table';
     align-content: start;
   }
 
@@ -1054,7 +1096,7 @@ tbody tr.is-selected th {
   }
   .inputs > .panel-head + .field .chips {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .inputs > .panel-head + .field .chip {
     padding: 0 4px;
@@ -1122,11 +1164,17 @@ tbody tr.is-selected th {
   }
   .results {
     grid-template-columns: minmax(0, 2.4fr) minmax(360px, 1fr);
+    grid-template-areas: 'cards cards' 'chart dsr' 'close close' 'table opr';
+    align-items: start;
+  }
+  .area-chart,
+  .area-dsr {
+    align-self: stretch;
   }
 }
 
 /* keep the inputs in view while reading results, but only when the whole panel fits */
-@media (min-width: 1200px) and (min-height: 840px) {
+@media (min-width: 1200px) and (min-height: 880px) {
   .inputs {
     position: sticky;
     top: 12px;

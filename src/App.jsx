@@ -8,9 +8,11 @@ import NetWorthChart from './NetWorthChart.jsx';
 const PRESETS = [
   { key: '50-20', amt: 50, yrs: 20 },
   { key: '100-30', amt: 100, yrs: 30 },
+  { key: '115-40', amt: 115, yrs: 40 },
   { key: '200-40', amt: 200, yrs: 40 },
 ];
 const DIVIDENDS = [4, 4.5, 5, 5.75, 6];
+const OPR_SHIFTS = [-0.5, -0.25, 0, 0.25, 0.5, 1];
 
 function useDarkMode() {
   const [dark, setDark] = useState(() => matchMedia('(prefers-color-scheme: dark)').matches);
@@ -117,6 +119,16 @@ export default function App() {
     [v.financing, v.tenure, v.rate, v.takaful],
   );
   const row = result.rows[v.year - 1];
+  // The ASBF rate floats with OPR, so show the same loan at a few shifted rates.
+  const oprRows = useMemo(
+    () =>
+      OPR_SHIFTS.map((shift) => {
+        const rate = Math.max(0, v.rate + shift);
+        const p = project({ ...v, rate });
+        return { shift, rate, installment: p.installment, diff: p.rows[v.year - 1].diff };
+      }),
+    [v.financing, v.tenure, v.rate, v.takaful, v.dividend, v.balance, v.exitFee, v.year],
+  );
   const debt = dsr({ salary: v.salary, commitments: v.commitments, installment: result.installment });
   // Short view: year 1, every 5th year, the last year and whichever year is selected.
   const tableRows = allYears
@@ -548,6 +560,51 @@ export default function App() {
                 </>
               )}
             </section>
+
+          <section className="card area-opr" aria-labelledby="opr-h">
+            <div className="card-head">
+              <h2 id="opr-h">
+                {t('oprTitle')}
+                {tip(t('oprTitle'), 'tipOpr')}
+              </h2>
+            </div>
+            <div className="table-wrap">
+              <table className="mini">
+                <thead>
+                  <tr>
+                    <th scope="col">OPR</th>
+                    <th scope="col">{t('colRate')}</th>
+                    <th scope="col">{t('colInst')}</th>
+                    <th scope="col">{t('colDiffY', { y: v.year })}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {oprRows.map((o) => {
+                    const extra = o.installment - result.installment;
+                    return (
+                      <tr key={o.shift} className={o.shift === 0 ? 'is-selected' : undefined}>
+                        <th scope="row">
+                          {o.shift === 0 ? t('oprNow') : `${o.shift > 0 ? '+' : '−'}${Math.abs(o.shift).toFixed(2)}%`}
+                        </th>
+                        <td>{pct(o.rate)}</td>
+                        <td>
+                          {rm2(o.installment)}
+                          {o.shift !== 0 && (
+                            <span className={`delta tone-${extra > 0 ? 'bad' : 'good'}`}>
+                              {rmSigned(extra)}
+                              {t('perMonth')}
+                            </span>
+                          )}
+                        </td>
+                        <td className={`tone-${toneOf(o.diff)}`}>{rmSigned(o.diff)}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            <p className="muted small">{t('oprNote', { div: trimPct(v.dividend) })}</p>
+          </section>
 
           <section className="card area-table" aria-labelledby="table-h">
             <div className="card-head">
