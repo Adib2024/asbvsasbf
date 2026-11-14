@@ -114,6 +114,7 @@ export default function App() {
   const row = result.rows[v.year - 1];
   const debt = dsr({ salary: v.salary, commitments: v.commitments, installment: result.installment });
   const tone = toneOf(row.diff);
+  const assume = { inst: rm2(result.installment), y: v.year, m: v.year * 12 };
   const pill = tone === 'good' ? t('asbfWins') : tone === 'bad' ? t('cashWins') : t('even');
   const overLimit = v.balance + v.financing > ASB_LIMIT;
 
@@ -360,7 +361,7 @@ export default function App() {
               <p className="stat-val">
                 <Anim value={result.installment} format={rm2} />
               </p>
-              <p className="stat-sub">{t('perMonth')}</p>
+              <p className="stat-sub">{t('perMonthBoth')}</p>
             </div>
             <div className="card stat">
               <h3>
@@ -415,7 +416,11 @@ export default function App() {
                 <span className={`pill pill-${tone}`}>{pill}</span>
               </div>
               <h3 className="group">{t('groupAsbf')}</h3>
+              <p className="assume">{t('asbfAssume', assume)}</p>
               <dl>
+                <Row label={t('paidAsbf', assume)}>
+                  <Anim value={-row.totalPaid} format={rm} />
+                </Row>
                 <Row label={t('units')}>
                   <Anim value={row.units} format={rm} />
                 </Row>
@@ -438,9 +443,13 @@ export default function App() {
                 </Row>
               </dl>
               <h3 className="group">{t('groupCash')}</h3>
+              <p className="assume">{t('cashAssume', assume)}</p>
               <dl>
-                <Row label={t('totalPaid')}>
+                <Row label={t('depositCash', assume)}>
                   <Anim value={row.totalPaid} format={rm} />
+                </Row>
+                <Row label={t('cashDividend')}>
+                  <Anim value={row.cash - row.totalPaid} format={rmSigned} />
                 </Row>
                 <Row label={t('cashSaved')}>
                   <Anim value={row.cash} format={rm} />
@@ -464,6 +473,7 @@ export default function App() {
                   <Anim value={row.gainCash} format={rmSigned} />
                 </Row>
               </dl>
+              <p className="muted small">{t('gainNote')}</p>
             </section>
 
             <section className="card" aria-labelledby="dsr-h">
