@@ -37,7 +37,7 @@ const PALETTE = {
   },
 };
 
-export default function NetWorthChart({ rows, year, onSelect, dark, labels, ariaLabel }) {
+export default function NetWorthChart({ rows, year, onSelect, dark, printing, labels, ariaLabel }) {
   const canvas = useRef(null);
   const chart = useRef(null);
   const live = useRef({ year, onSelect, labels });
@@ -147,8 +147,14 @@ export default function NetWorthChart({ rows, year, onSelect, dark, labels, aria
     c.options.scales.y.grid.color = p.grid;
     c.options.plugins.legend.labels.color = p.text;
     c.options.plugins.selectedYear = { color: p.marker, surface: p.surface };
-    c.update();
-  }, [rows, dark, labels]);
+    // Paper has a fixed width, and the print snapshot cannot wait for an animation.
+    if (printing) c.resize(680, 300);
+    c.update(printing ? 'none' : undefined);
+  }, [rows, dark, labels, printing]);
+
+  useEffect(() => {
+    if (!printing) chart.current.resize();
+  }, [printing]);
 
   // Selection only needs a redraw.
   useEffect(() => {

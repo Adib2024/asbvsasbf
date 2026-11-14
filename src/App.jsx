@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
 import { ASB_LIMIT, DEFAULTS, DSR_LIMIT, LIMITS, breakEvenDividend, dsr, impliedRate, project } from './calc.js';
 import { makeT, num, pct, rm, rm2, rmSigned, trimPct } from './i18n.js';
 import { loadInitial, save, toUrl } from './state.js';
 import { Anim, Chips, Info, MoneyField, SliderField } from './components.jsx';
 import NetWorthChart from './NetWorthChart.jsx';
+import ShareDialog from './ShareDialog.jsx';
 
 const PRESETS = [
   { key: '50-20', amt: 50, yrs: 20 },
@@ -23,6 +25,22 @@ function useDarkMode() {
     return () => mq.removeEventListener('change', on);
   }, []);
   return dark;
+}
+
+/** True while the browser is laying the page out for printing. */
+function usePrinting() {
+  const [printing, setPrinting] = useState(false);
+  useEffect(() => {
+    const before = () => flushSync(() => setPrinting(true));
+    const after = () => setPrinting(false);
+    window.addEventListener('beforeprint', before);
+    window.addEventListener('afterprint', after);
+    return () => {
+      window.removeEventListener('beforeprint', before);
+      window.removeEventListener('afterprint', after);
+    };
+  }, []);
+  return printing;
 }
 
 async function copyText(text) {
@@ -71,10 +89,17 @@ export default function App() {
   // Phones start with the four key columns so the table fits without sideways scrolling.
   const [allYears, setAllYears] = useState(false);
   const [fullTable, setFullTable] = useState(() => matchMedia('(min-width: 860px)').matches);
-  const dark = useDarkMode();
+  const [view, setView] = useState(initial.current.view); // read-only customer summary
+  const [shareOpen, setShareOpen] = useState(false);
+  const [customer, setCustomer] = useState('');
+  const [includeDsr, setIncludeDsr] = useState(true);
+  const printing = usePrinting();
+  const dark = useDarkMode() && !printing;
   const t = useMemo(() => makeT(lang), [lang]);
 
-  useEffect(() => save(inputs, lang), [inputs, lang]);
+  useEffect(() => {
+    if (!view) save(inputs, lang);
+  }, [inputs, lang, view]);
   useEffect(() => {
     document.documentElement.lang = lang === 'bm' ? 'ms' : 'en';
     document.title = t('appTitle');
@@ -155,11 +180,57 @@ export default function App() {
     [t],
   );
 
-  const share = async () => {
-    const url = toUrl(inputs, lang);
+  const copyLink = async (url) => {
     const ok = await copyText(url);
     setToast(ok ? { text: t('copied') } : { text: `${t('copyFailed')} ${url}`, sticky: true });
   };
+  const print = () => {
+    setShareOpen(false);
+    // Let the dialog close and the print-only summary render first.
+    setTimeout(() => window.print(), 80);
+  };
+  const leaveView = () => {
+    setView(null);
+    try {
+      history.replaceState(null, '', location.pathname);
+    } catch {
+      /* ignore */
+    }
+  };
+  const shownName = view ? view.name : customer.trim();
+  const showDsr = view ? Boolean(debt) : true;
+  const summary = (
+    <>
+      <p className="eyebrow">{t('appTitle')}</p>
+      <h2 id="summary-h">{shownName ? t('preparedFor', { name: shownName }) : t('summaryTitle')}</h2>
+      <p className="muted small">
+        {t('generatedOn', {
+          date: new Date().toLocaleDateString(lang === 'bm' ? 'ms-MY' : 'en-MY', { day: 'numeric', month: 'long', year: 'numeric' }),
+        })}
+      </p>
+      <h3 className="group">{t('assumptions')}</h3>
+      <dl className="summary-list">
+        <Row label={t('financing')}>{rm(v.financing)}</Row>
+        <Row label={t('tenure')}>
+          {v.tenure} {t('years')}
+        </Row>
+        <Row label={t('rate')}>{pct(v.rate)}</Row>
+        <Row label={t('takafulShort')}>{rm(v.takaful)}</Row>
+        <Row label={t('cardInstallment')} strong>
+          {rm2(result.installment)}
+        </Row>
+        <Row label={t('dividend')}>{pct(v.dividend)}</Row>
+        <Row label={t('balance')}>{rm(v.balance)}</Row>
+        {v.exitFee > 0 && <Row label={t('fee')}>{rm(v.exitFee)}</Row>}
+        {debt && (view || includeDsr) && (
+          <>
+            <Row label={t('salary')}>{rm(v.salary)}</Row>
+            <Row label={t('commitments')}>{rm(v.commitments)}</Row>
+          </>
+        )}
+      </dl>
+    </>
+  );
   const reset = () => {
     setInputs({ ...DEFAULTS });
     setToast({ text: t('resetDone') });
@@ -202,7 +273,8 @@ export default function App() {
                 EN
               </button>
             </div>
-            <button type="button" className="btn" onClick={share}>
+            {!view && (
+            <button type="button" className="btn" onClick={() => setShareOpen(true)}>
               <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
                 <path
                   d="M10 14a4 4 0 0 0 5.7 0l3.5-3.5a4 4 0 0 0-5.7-5.7L12.4 6M14 10a4 4 0 0 0-5.7 0l-3.5 3.5a4 4 0 0 0 5.7 5.7l1.1-1.1"
@@ -214,6 +286,7 @@ export default function App() {
               </svg>
               {t('share')}
             </button>
+            )}
           </div>
         </div>
       </header>
@@ -223,7 +296,27 @@ export default function App() {
           {verdict}
         </p>
 
-        <section className="panel inputs" aria-labelledby="inputs-h">
+        {view ? (
+          <section className="panel inputs viewinfo" aria-labelledby="summary-h">
+            {summary}
+            <div className="view-actions no-print">
+              <button type="button" className="btn" onClick={leaveView}>
+                {t('tryOwn')}
+              </button>
+              <button type="button" className="btn btn-line" onClick={() => window.print()}>
+                {t('printPdf')}
+              </button>
+            </div>
+            <p className="muted small no-print">{t('viewNote')}</p>
+          </section>
+        ) : (
+          <section className="panel viewinfo print-only" aria-labelledby="summary-h">
+            {summary}
+          </section>
+        )}
+
+        {!view && (
+        <section className="panel inputs no-print" aria-labelledby="inputs-h">
           <div className="panel-head">
             <h2 id="inputs-h">{t('inputs')}</h2>
             <button type="button" className="btn btn-quiet" onClick={reset}>
@@ -367,8 +460,9 @@ export default function App() {
           />
           </div>
         </section>
+        )}
 
-        <div className="results">
+        <div className={`results${showDsr ? '' : ' no-dsr'}`}>
           <section className="cards area-cards" aria-label={t('groupCompare')}>
             <div className="card stat">
               <h3>{t('cardInstallment')}</h3>
@@ -418,6 +512,7 @@ export default function App() {
               year={v.year}
               onSelect={selectYear}
               dark={dark}
+              printing={printing}
               labels={chartLabels}
               ariaLabel={t('chartAria', { y: v.tenure })}
             />
@@ -509,7 +604,8 @@ export default function App() {
               </div>
             </section>
 
-            <section className="card area-dsr" aria-labelledby="dsr-h">
+            {showDsr && (
+            <section className={`card area-dsr${!view && (!includeDsr || !debt) ? ' no-print' : ''}`} aria-labelledby="dsr-h">
               <div className="card-head">
                 <h2 id="dsr-h">
                   {t('dsrTitle')}
@@ -560,6 +656,7 @@ export default function App() {
                 </>
               )}
             </section>
+            )}
 
           <section className="card area-opr" aria-labelledby="opr-h">
             <div className="card-head">
@@ -680,7 +777,21 @@ export default function App() {
         <span className={`pill pill-${tone}`}>{pill}</span>
       </div>
 
-      <div className="toast-zone" role="status" aria-live="polite">
+      <ShareDialog
+        open={shareOpen}
+        onClose={() => setShareOpen(false)}
+        t={t}
+        makeUrl={() => toUrl(inputs, lang, { name: customer, includeDsr: includeDsr && Boolean(debt) })}
+        name={customer}
+        setName={setCustomer}
+        includeDsr={includeDsr}
+        setIncludeDsr={setIncludeDsr}
+        hasSalary={Boolean(debt)}
+        onCopy={copyLink}
+        onPrint={print}
+      />
+
+      <div className="toast-zone no-print" role="status" aria-live="polite">
         {toast && <div className="toast">{toast.text}</div>}
       </div>
     </>

@@ -56,13 +56,20 @@ export function fromUrl(search) {
     }
   }
   const lang = q.get('lang');
-  return { inputs: found ? sanitize(raw) : null, lang: lang === 'en' || lang === 'bm' ? lang : null };
+  // v=1 marks a read-only customer link made by a banker; n is the customer's name.
+  const view = found && q.get('v') === '1' ? { name: (q.get('n') || '').trim().slice(0, 60) } : null;
+  return { inputs: found ? sanitize(raw) : null, lang: lang === 'en' || lang === 'bm' ? lang : null, view };
 }
 
-export function toUrl(inputs, lang) {
+export function toUrl(inputs, lang, { name = '', includeDsr = true } = {}) {
   const q = new URLSearchParams();
-  for (const [short, key] of Object.entries(PARAMS)) q.set(short, inputs[key] ?? '');
+  for (const [short, key] of Object.entries(PARAMS)) {
+    const privateField = key === 'salary' || key === 'commitments';
+    q.set(short, privateField && !includeDsr ? '' : (inputs[key] ?? ''));
+  }
   q.set('lang', lang);
+  q.set('v', '1');
+  if (name.trim()) q.set('n', name.trim().slice(0, 60));
   return `${location.origin}${location.pathname}?${q}`;
 }
 
@@ -76,6 +83,10 @@ export function loadInitial() {
     /* storage unavailable or corrupt: fall back to defaults */
   }
   const url = fromUrl(location.search);
+  if (url.view) {
+    // Customer link: keep the URL so a refresh shows the same summary, and leave saved inputs alone.
+    return { inputs: url.inputs, lang: url.lang || 'bm', view: url.view };
+  }
   if (url.inputs || url.lang) {
     try {
       history.replaceState(null, '', location.pathname);
@@ -86,6 +97,7 @@ export function loadInitial() {
   return {
     inputs: url.inputs || sanitize(stored),
     lang: url.lang || (lang === 'en' ? 'en' : 'bm'),
+    view: null,
   };
 }
 
