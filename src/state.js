@@ -15,6 +15,7 @@ const PARAMS = {
   c: 'commitments',
   y: 'year',
   x: 'exitFee',
+  a: 'installment',
 };
 
 const MONEY_MAX = 100000000;
@@ -30,7 +31,7 @@ export function sanitize(raw) {
     const { min, max, dp } = LIMITS[key];
     if (raw[key] !== null && raw[key] !== '' && Number.isFinite(n)) out[key] = round(clamp(n, min, max), dp);
   }
-  for (const key of ['takaful', 'balance', 'salary', 'commitments', 'exitFee']) {
+  for (const key of ['takaful', 'balance', 'salary', 'commitments', 'exitFee', 'installment']) {
     if (!(key in raw)) continue;
     if (raw[key] === null || raw[key] === '') {
       out[key] = null;

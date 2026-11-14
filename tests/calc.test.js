@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { DEFAULTS, installment, project, breakEvenDividend, dsr, cashFutureValue } from '../src/calc.js';
+import { DEFAULTS, impliedRate, installment, project, breakEvenDividend, dsr, cashFutureValue } from '../src/calc.js';
 
 test('RM115,000 / 40 yrs / 4.20% / RM500 takaful is about RM497 a month', () => {
   const inst = installment(115500, 4.2, 40);
@@ -52,4 +52,13 @@ test('DSR and home loan eligibility', () => {
   assert.ok(Math.abs(d.without - 2400 / per) < 1e-6);
   assert.ok(Math.abs(d.reduction - inst / per) < 1e-6);
   assert.equal(dsr({ salary: 0, commitments: 0, installment: inst }), null);
+});
+
+test('implied rate reproduces a known installment', () => {
+  const rate = impliedRate(115500, 499, 40);
+  assert.ok(Math.abs(installment(115500, rate, 40) - 499) < 1e-6);
+  assert.ok(rate > 4.2 && rate < 4.3, `rate ${rate}`);
+  assert.ok(Math.abs(project({ ...DEFAULTS, rate }).installment - 499) < 1e-6);
+  assert.equal(impliedRate(115500, 100, 40), null); // cannot even repay the principal
+  assert.equal(impliedRate(115500, 5000, 40), null); // absurdly high
 });

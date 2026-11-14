@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ASB_LIMIT, DEFAULTS, DSR_LIMIT, LIMITS, breakEvenDividend, dsr, project } from './calc.js';
+import { ASB_LIMIT, DEFAULTS, DSR_LIMIT, LIMITS, breakEvenDividend, dsr, impliedRate, project } from './calc.js';
 import { makeT, num, pct, rm, rm2, rmSigned, trimPct } from './i18n.js';
 import { loadInitial, save, toUrl } from './state.js';
 import { Anim, Chips, Info, MoneyField, SliderField } from './components.jsx';
@@ -90,7 +90,7 @@ export default function App() {
   const selectYear = useCallback((y) => set('year', y), [set]);
 
   // Empty money fields count as zero in the maths.
-  const v = {
+  const base = {
     ...inputs,
     takaful: inputs.takaful ?? 0,
     balance: inputs.balance ?? 0,
@@ -98,6 +98,10 @@ export default function App() {
     exitFee: inputs.exitFee ?? 0,
     salary: inputs.salary ?? 0,
   };
+  // A known installment overrides the rate: we work out the rate it implies.
+  const hasKnown = inputs.installment > 0;
+  const implied = hasKnown ? impliedRate(base.financing + base.takaful, inputs.installment, base.tenure) : null;
+  const v = implied === null ? base : { ...base, rate: implied };
 
   const result = useMemo(
     () => project(v),
@@ -257,7 +261,10 @@ export default function App() {
             rangeText={rangeOf('rate', (n) => n.toFixed(2))}
             onChange={(n) => set('rate', n)}
             tip={tip('KAS', 'tipKas')}
-          />
+            disabled={implied !== null}
+          >
+            {implied !== null && <p className="hint">{t('rateImplied', { rate: implied.toFixed(2) })}</p>}
+          </SliderField>
 
           <MoneyField
             id="takaful"
@@ -266,6 +273,22 @@ export default function App() {
             onChange={(n) => set('takaful', n)}
             tip={tip('Takaful', 'tipTakaful')}
             hint={inputs.takaful === null ? t('emptyZero') : null}
+          />
+
+          <MoneyField
+            id="installment"
+            label={t('knownInstallment')}
+            value={inputs.installment}
+            onChange={(n) => set('installment', n)}
+            tip={tip(t('knownInstallment'), 'tipKnownInstallment')}
+            hint={
+              hasKnown && implied === null
+                ? t('installmentInvalid', { calc: rm2(result.installment) })
+                : !hasKnown
+                  ? t('installmentEmpty')
+                  : null
+            }
+            warn={hasKnown && implied === null}
           />
 
           <SliderField

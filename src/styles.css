@@ -336,6 +336,16 @@ table,
   outline: none;
 }
 
+.valbox.is-disabled,
+.valbox.is-disabled input {
+  color: var(--muted);
+}
+
+input[type='range']:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
 .valbox.is-invalid {
   border-color: var(--bad);
 }

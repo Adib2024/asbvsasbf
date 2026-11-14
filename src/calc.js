@@ -11,6 +11,7 @@ export const DEFAULTS = {
   commitments: 0,
   year: 10,
   exitFee: 0,
+  installment: null, // actual installment, when the user already knows it
 };
 
 export const LIMITS = {
@@ -32,6 +33,23 @@ export function installment(P, annualRatePct, years) {
   if (n <= 0) return 0;
   if (r === 0) return P / n;
   return (P * r) / (1 - Math.pow(1 + r, -n));
+}
+
+/**
+ * Annual rate (%) implied by a known monthly installment.
+ * Returns null when the installment cannot repay P (at or below 0%) or implies more than 20%.
+ */
+export function impliedRate(P, inst, years) {
+  if (!(P > 0) || !(inst > 0)) return null;
+  if (inst <= installment(P, 0, years) || inst > installment(P, 20, years)) return null;
+  let lo = 0;
+  let hi = 20;
+  for (let k = 0; k < 60; k++) {
+    const mid = (lo + hi) / 2;
+    if (installment(P, mid, years) < inst) lo = mid;
+    else hi = mid;
+  }
+  return (lo + hi) / 2;
 }
 
 /** Future value of saving `monthly` every month into ASB for `years`. */

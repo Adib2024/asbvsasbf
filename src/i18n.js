@@ -23,6 +23,13 @@ export const STRINGS = {
     salary: 'Gaji bersih bulanan',
     commitments: 'Komitmen bank lain sebulan',
     exitFee: 'Fi penamatan awal (pilihan)',
+    knownInstallment: 'Ansuran sebenar saya (pilihan)',
+    installmentEmpty: 'Dah ada ASBF? Taip ansuran bulanan anda. Kosongkan untuk kira daripada kadar.',
+    installmentInvalid:
+      'Ansuran ini tidak munasabah untuk jumlah dan tempoh ini, jadi kadar di atas digunakan ({calc}/bulan). Semak jumlah pembiayaan dan tempoh.',
+    rateImplied: 'Dikira daripada ansuran anda: {rate}% setahun. Kosongkan ansuran untuk ubah kadar.',
+    tipKnownInstallment:
+      'Jika anda sudah tahu ansuran bulanan (contohnya RM499), taip di sini. Kalkulator akan mengira kadar pembiayaan yang sepadan dengan jumlah, takaful dan tempoh anda, dan guna ansuran ini dalam semua pengiraan.',
     year: 'Tahun tutup / semak',
     years: 'tahun',
     yearShort: 'thn',
@@ -144,6 +151,13 @@ export const STRINGS = {
     salary: 'Net monthly salary',
     commitments: 'Other bank commitments per month',
     exitFee: 'Early exit fee (optional)',
+    knownInstallment: 'My actual installment (optional)',
+    installmentEmpty: 'Already have ASBF? Type your monthly installment. Leave empty to calculate it from the rate.',
+    installmentInvalid:
+      'This installment does not fit this amount and tenure, so the rate above is used ({calc}/month). Check the financing amount and tenure.',
+    rateImplied: 'Worked out from your installment: {rate}% a year. Clear the installment to change the rate.',
+    tipKnownInstallment:
+      'If you already know your monthly installment (for example RM499), type it here. The calculator works out the financing rate that matches your amount, takaful and tenure, and uses this installment in every calculation.',
     year: 'Close / review year',
     years: 'years',
     yearShort: 'yrs',

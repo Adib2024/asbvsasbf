@@ -96,7 +96,7 @@ const parse = (text) => {
 const clean = (text) => text.replace(/[^\d.,]/g, '');
 
 /** Slider with a live value that can also be typed directly. */
-export function SliderField({ id, label, value, min, max, step, dp = 0, prefix, suffix, onChange, tip, rangeText, children }) {
+export function SliderField({ id, label, value, min, max, step, dp = 0, prefix, suffix, onChange, tip, rangeText, disabled, children }) {
   const [text, setText] = useState(null); // null = not editing
   const show = (v) => (dp === 0 ? num(v) : v.toFixed(dp));
   const typed = text === null ? NaN : parse(text);
@@ -115,12 +115,13 @@ export function SliderField({ id, label, value, min, max, step, dp = 0, prefix, 
       <div className="field-head">
         <label htmlFor={id}>{label}</label>
         {tip}
-        <span className={`valbox${invalid ? ' is-invalid' : ''}`}>
+        <span className={`valbox${invalid ? ' is-invalid' : ''}${disabled ? ' is-disabled' : ''}`}>
           {prefix && <span aria-hidden="true">{prefix}</span>}
           <input
             type="text"
             inputMode={dp === 0 ? 'numeric' : 'decimal'}
             autoComplete="off"
+            disabled={disabled}
             aria-label={label}
             aria-invalid={invalid || undefined}
             aria-describedby={invalid ? `${id}-err` : undefined}
@@ -150,6 +151,7 @@ export function SliderField({ id, label, value, min, max, step, dp = 0, prefix, 
         max={max}
         step={step}
         value={value}
+        disabled={disabled}
         style={{ '--fill': `${fill}%` }}
         onChange={(e) => onChange(+Number(e.target.value).toFixed(dp))}
       />
